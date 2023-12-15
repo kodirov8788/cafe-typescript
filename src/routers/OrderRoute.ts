@@ -1,18 +1,15 @@
 import express, { Request, Response } from "express";
 import Order, { OrderModel } from "../models/OrderModul";
 import { pusher } from "../Pusherjs";
-import CacheController from "../redis/redis";
-
+// import CacheController from "../redis/redis";
 
 const router = express.Router();
-
 router.post("/create", async (req: Request, res: Response) => {
-    console.log(req.body)
+    // console.log(req.body)
     try {
         const { ordernumber, tablenumber, waitername, order } = req.body;
         console.log(tablenumber);
 
-        // Assuming OrderModel is defined correctly
         const newOrder: OrderModel = new Order({
             isready: false,
             ordernumber,
@@ -20,12 +17,13 @@ router.post("/create", async (req: Request, res: Response) => {
             waitername,
             order
         });
+        await newOrder.save().then((order) => {
+            pusher.trigger('chat-channel', 'new-message', order);
+            res.status(201).send(order);
+        }).catch(error => {
+            res.status(501).send(error);
+        })
 
-        const savedOrder = await newOrder.save();
-        console.log(savedOrder);
-
-        // pusher.trigger('chat-channel', 'new-message', savedOrder);
-        res.status(201).send(savedOrder);
     } catch (error) {
         res.status(500).send("Error creating order");
     }
@@ -51,7 +49,6 @@ router.put("/made/:id", async (req: Request, res: Response) => {
 router.get("/get", async (_req: Request, res: Response) => {
     try {
         const data: OrderModel[] = await Order.find({}).sort({ _id: -1 });
-        CacheController.client.setex("orders", 3600, JSON.stringify(data));
         res.status(200).send(data);
     } catch (error) {
         res.status(500).send("Error fetching orders");

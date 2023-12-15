@@ -10,6 +10,8 @@ const app = express();
 app.use(bodyParser.json())
 app.use(express.json());
 app.use(cors());
+
+// you should put here your mongodb url 
 const url = process.env.MONGO_URL!;
 mongoose.set("strictQuery", true);
 mongoose
