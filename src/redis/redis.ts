@@ -1,5 +1,5 @@
 import redis, { RedisClient } from 'redis';
-import Order, { OrderModel } from "../models/OrderModul";
+import Order, { OrderModel } from "../models/OrderModul.js";
 import crypto from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 
